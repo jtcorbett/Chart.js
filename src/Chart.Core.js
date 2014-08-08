@@ -774,11 +774,11 @@
 			while (len > x) {
 				x += da[di++ % dc];
 				if (x > len) x = len;
-				draw ? ctx.lineTo(x, 0): ctx.moveTo(x, 0);
+				draw ? ctx.lineTo(x?x:1, 0): ctx.moveTo(x, 0);
 				draw = !draw;
 			}
 			ctx.restore();
-		}
+		};
 
 
 	//Store a reference to each instance - allowing us to globally resize chart instances on window resize.
