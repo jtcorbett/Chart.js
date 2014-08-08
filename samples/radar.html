@@ -2,7 +2,8 @@
 <html>
 	<head>
 		<title>Radar Chart</title>
-		<script src="../Chart.js"></script>
+    <script src="../src/Chart.Core.js"></script>
+		<script src="../src/Chart.Radar.js"></script>
 		<meta name = "viewport" content = "initial-scale = 1, user-scalable = no">
 		<style>
 			canvas{
@@ -27,6 +28,7 @@
 				pointStrokeColor: "#fff",
 				pointHighlightFill: "#fff",
 				pointHighlightStroke: "rgba(220,220,220,1)",
+        dashStyle: [10, 5],
 				data: [65,59,90,81,56,55,40]
 			},
 			{
