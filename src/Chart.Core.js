@@ -411,7 +411,7 @@
 			 	{
 			 	return templateString(valuesObject);
 			 	}
-			 
+
 			var cache = {};
 			function tmpl(str, data){
 				// Figure out if we're getting a template, or if we need to
@@ -741,7 +741,7 @@
 				var textWidth = ctx.measureText(string).width;
 				longest = (textWidth > longest) ? textWidth : longest;
 			});
-			return longest;
+			return longest + 10;
 		},
 		drawRoundedRectangle = helpers.drawRoundedRectangle = function(ctx,x,y,width,height,radius){
 			ctx.beginPath();
