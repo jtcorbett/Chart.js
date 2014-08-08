@@ -1,20 +1,21 @@
 <!doctype html>
 <html>
 	<head>
-		<title>Pie Chart</title>
-		<script src="../Chart.js"></script>
+		<title>Meter</title>
+    <script src="../src/Chart.Core.js"></script>
+		<script src="../src/Chart.Meter.js"></script>
 	</head>
 	<body>
 		<div id="canvas-holder">
-			<canvas id="chart-area" width="300" height="300"/>
+			<canvas id="chart-area" width="500" height="100"/>
 		</div>
 
 
 	<script>
 
-		var pieData = [
+		var meterData = [
 				{
-					value: 300,
+					value: 100,
 					color:"#F7464A",
 					highlight: "#FF5A5E",
 					label: "Red"
@@ -43,17 +44,16 @@
 					highlight: "#616774",
 					label: "Dark Grey"
 				}
-
 			];
 
 			window.onload = function(){
 				var ctx = document.getElementById("chart-area").getContext("2d");
-				window.myPie = new Chart(ctx).Pie(pieData, {
-          animateScale: true,
+				window.myMeter = new Chart(ctx).Meter(meterData, {
+          total: 1000,
+          animationSteps: 80,
+          responsive: true,
         });
 			};
-
-
 
 	</script>
 	</body>

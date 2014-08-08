@@ -411,7 +411,7 @@
 			 	{
 			 	return templateString(valuesObject);
 			 	}
-			 
+
 			var cache = {};
 			function tmpl(str, data){
 				// Figure out if we're getting a template, or if we need to
@@ -742,6 +742,19 @@
 				longest = (textWidth > longest) ? textWidth : longest;
 			});
 			return longest;
+		},
+		drawHalfRoundedRectangle = helpers.drawHalfRoundedRectangle = function(ctx,x,y,width,height,lradius,rradius){
+			ctx.beginPath();
+			ctx.moveTo(x + lradius, y);
+			ctx.lineTo(x + width - rradius, y);
+			ctx.quadraticCurveTo(x + width, y, x + width, y + rradius);
+			ctx.lineTo(x + width, y + height - rradius);
+			ctx.quadraticCurveTo(x + width, y + height, x + width - rradius, y + height);
+			ctx.lineTo(x + lradius, y + height);
+			ctx.quadraticCurveTo(x, y + height, x, y + height - lradius);
+			ctx.lineTo(x, y + lradius);
+			ctx.quadraticCurveTo(x, y, x + lradius, y);
+			ctx.closePath();
 		},
 		drawRoundedRectangle = helpers.drawRoundedRectangle = function(ctx,x,y,width,height,radius){
 			ctx.beginPath();
