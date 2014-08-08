@@ -2,7 +2,8 @@
 <html>
 	<head>
 		<title>Pie Chart</title>
-		<script src="../Chart.js"></script>
+    <script src="../src/Chart.Core.js"></script>
+		<script src="../src/Chart.Doughnut.js"></script>
 	</head>
 	<body>
 		<div id="canvas-holder">
@@ -15,32 +16,32 @@
 		var pieData = [
 				{
 					value: 300,
-					color:"#F7464A",
-					highlight: "#FF5A5E",
+					color: ["#FFFFFF", "#F7464A", "#000"],
+					highlight: ["#FFFFFF", "#FF5A5E", "#111"],
 					label: "Red"
 				},
 				{
 					value: 50,
-					color: "#46BFBD",
-					highlight: "#5AD3D1",
+					color: ["#FFF", "#46BFBD", "#000"],
+					highlight: ["#FFF", "#5AD3D1", "#111"],
 					label: "Green"
 				},
 				{
 					value: 100,
-					color: "#FDB45C",
-					highlight: "#FFC870",
+					color: ["#FFF", "#FDB45C", "#000"],
+					highlight: ["#FFF", "#FFC870", "#111"],
 					label: "Yellow"
 				},
 				{
 					value: 40,
-					color: "#949FB1",
-					highlight: "#A8B3C5",
+					color: ["#FFF", "#949FB1", "#000"],
+					highlight: ["#FFF", "#A8B3C5", "#111"],
 					label: "Grey"
 				},
 				{
 					value: 120,
-					color: "#4D5360",
-					highlight: "#616774",
+					color: ["#FFF", "#4D5360", "#000"],
+					highlight: ["#FFF", "#616774", "#111"],
 					label: "Dark Grey"
 				}
 

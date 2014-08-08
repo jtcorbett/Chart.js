@@ -411,7 +411,7 @@
 			 	{
 			 	return templateString(valuesObject);
 			 	}
-			 
+
 			var cache = {};
 			function tmpl(str, data){
 				// Figure out if we're getting a template, or if we need to
@@ -1148,7 +1148,21 @@
 			ctx.strokeStyle = this.strokeColor;
 			ctx.lineWidth = this.strokeWidth;
 
-			ctx.fillStyle = this.fillColor;
+			if ((this.fillColor instanceof Array) && (this.fillColor.length > 1)) {
+				var gradient = ctx.createRadialGradient(this.x,this.y,this.innerRadius,this.x,this.y,this.outerRadius);
+
+				helpers.each(this.fillColor, function(value, index) {
+					gradient.addColorStop(index/(this.fillColor.length-1), value);
+				},this);
+
+				ctx.fillStyle = gradient;
+			} else {
+				if (this.fillColor instanceof Array) {
+					this.fillColor = this.fillColor[0];
+				}
+
+				ctx.fillStyle = this.fillColor;
+			}
 
 			ctx.fill();
 			ctx.lineJoin = 'bevel';
