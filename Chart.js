@@ -33,6 +33,7 @@
 
 		return this;
 	};
+
 	//Globally expose the defaults to allow for user updating/changing
 	Chart.defaults = {
 		global: {
@@ -92,8 +93,8 @@
 			// Boolean - whether or not the chart should be responsive and resize when the browser does.
 			responsive: false,
 
-                        // Boolean - whether to maintain the starting aspect ratio or not when responsive, if set to false, will take up entire container
-                        maintainAspectRatio: true,
+			// Boolean - whether to maintain the starting aspect ratio or not when responsive, if set to false, will take up entire container
+			maintainAspectRatio: true,
 
 			// Boolean - Determines whether to draw tooltips on the canvas or not - attaches events to touchmove & mousemove
 			showTooltips: true,
@@ -140,6 +141,9 @@
 			// Number - Pixel radius of the tooltip border
 			tooltipCornerRadius: 6,
 
+			// Number - Pixel offset from point y to tooltip edge
+			tooltipYOffset: 0,
+
 			// Number - Pixel offset from point x to tooltip edge
 			tooltipXOffset: 10,
 
@@ -167,7 +171,7 @@
 	//Global Chart helpers object for utility methods and classes
 	var helpers = Chart.helpers = {};
 
-		//-- Basic js utility methods
+	//-- Basic js utility methods
 	var each = helpers.each = function(loopable,callback,self){
 			var additionalArgs = Array.prototype.slice.call(arguments, 3);
 			// Check to see if null or undefined firstly.
@@ -406,18 +410,16 @@
 		//Templating methods
 		//Javascript micro templating by John Resig - source at http://ejohn.org/blog/javascript-micro-templating/
 		template = helpers.template = function(templateString, valuesObject){
-			 // If templateString is function rather than string-template - call the function for valuesObject
-			 if(templateString instanceof Function)
-			 	{
-			 	return templateString(valuesObject);
-			 	}
-			 
+			// If templateString is function rather than string-template - call the function for valuesObject
+			if(templateString instanceof Function){
+				return templateString(valuesObject);
+			}
+
 			var cache = {};
 			function tmpl(str, data){
 				// Figure out if we're getting a template, or if we need to
 				// load the template - and be sure to cache the result.
-				var fn = !/\W/.test(str) ?
-				cache[str] = cache[str] :
+				var fn = !/\W/.test(str) ? cache[str] :
 
 				// Generate a reusable function that will serve as a template
 				// generator (and which will be cached).
@@ -741,7 +743,7 @@
 				var textWidth = ctx.measureText(string).width;
 				longest = (textWidth > longest) ? textWidth : longest;
 			});
-			return longest;
+			return longest + 5;
 		},
 		drawRoundedRectangle = helpers.drawRoundedRectangle = function(ctx,x,y,width,height,radius){
 			ctx.beginPath();
@@ -755,7 +757,28 @@
 			ctx.lineTo(x, y + radius);
 			ctx.quadraticCurveTo(x, y, x + radius, y);
 			ctx.closePath();
-		};
+		},
+		// Helper method to draw dashed lines
+		// Adapted from code by Rod MacDougall - http://stackoverflow.com/a/4663129
+		drawDashedLine = helpers.drawDashedLine = function(ctx,x,y,x2,y2,da) {
+			ctx.save();
+			var dx = (x2-x), dy = (y2-y);
+			var len = Math.sqrt(dx*dx + dy*dy);
+			var rot = Math.atan2(dy, dx);
+			ctx.translate(x, y);
+			ctx.moveTo(0, 0);
+			ctx.rotate(rot);
+			var dc = da.length;
+			var di = 0, draw = true;
+			x = 0;
+			while (len > x) {
+				x += da[di++ % dc];
+				if (x > len) x = len;
+				draw ? ctx.lineTo(x, 0): ctx.moveTo(x, 0);
+				draw = !draw;
+			}
+			ctx.restore();
+		}
 
 
 	//Store a reference to each instance - allowing us to globally resize chart instances on window resize.
@@ -926,6 +949,7 @@
 						xPadding: this.options.tooltipXPadding,
 						yPadding: this.options.tooltipYPadding,
 						xOffset: this.options.tooltipXOffset,
+						yOffset: this.options.tooltipYOffset,
 						fillColor: this.options.tooltipFillColor,
 						textColor: this.options.tooltipFontColor,
 						fontFamily: this.options.tooltipFontFamily,
@@ -952,6 +976,7 @@
 							y: Math.round(tooltipPosition.y),
 							xPadding: this.options.tooltipXPadding,
 							yPadding: this.options.tooltipYPadding,
+							yOffset: this.options.tooltipYOffset,
 							fillColor: this.options.tooltipFillColor,
 							textColor: this.options.tooltipFontColor,
 							fontFamily: this.options.tooltipFontFamily,
@@ -1070,9 +1095,13 @@
 				var ctx = this.ctx;
 				ctx.beginPath();
 
-				ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
-				ctx.closePath();
+				if (this.square) {
+					ctx.rect(this.x - this.radius, this.y - this.radius, this.radius*2, this.radius*2);
+				} else {
+					ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+				}
 
+				ctx.closePath();
 				ctx.strokeStyle = this.strokeColor;
 				ctx.lineWidth = this.strokeWidth;
 
@@ -1148,7 +1177,21 @@
 			ctx.strokeStyle = this.strokeColor;
 			ctx.lineWidth = this.strokeWidth;
 
-			ctx.fillStyle = this.fillColor;
+			if ((this.fillColor instanceof Array) && (this.fillColor.length > 1)) {
+				var gradient = ctx.createRadialGradient(this.x,this.y,this.innerRadius,this.x,this.y,this.outerRadius);
+
+				helpers.each(this.fillColor, function(value, index) {
+					gradient.addColorStop(index/(this.fillColor.length-1), value);
+				},this);
+
+				ctx.fillStyle = gradient;
+			} else {
+				if (this.fillColor instanceof Array) {
+					this.fillColor = this.fillColor[0];
+				}
+
+				ctx.fillStyle = this.fillColor;
+			}
 
 			ctx.fill();
 			ctx.lineJoin = 'bevel';
@@ -1211,6 +1254,8 @@
 			this.xAlign = "center";
 			this.yAlign = "above";
 
+			this.y -= this.yOffset;
+
 			//Distance between the actual element.y position and the start of the tooltip caret
 			var caretPadding = 2;
 
@@ -1218,7 +1263,7 @@
 				tooltipRectHeight = this.fontSize + 2*this.yPadding,
 				tooltipHeight = tooltipRectHeight + this.caretHeight + caretPadding;
 
-			if (this.x + tooltipWidth/2 >this.chart.width){
+			if (this.x + tooltipWidth/2 > this.chart.width){
 				this.xAlign = "left";
 			} else if (this.x - tooltipWidth/2 < 0){
 				this.xAlign = "right";
@@ -1226,8 +1271,8 @@
 
 			if (this.y - tooltipHeight < 0){
 				this.yAlign = "below";
+				this.y += 2*this.yOffset;
 			}
-
 
 			var tooltipX = this.x - tooltipWidth/2,
 				tooltipY = this.y - tooltipHeight;
@@ -1301,9 +1346,9 @@
 			//Check to ensure the height will fit on the canvas
 			//The three is to buffer form the very
 			if (this.y - halfHeight < 0 ){
-				this.y = halfHeight;
+				this.y = halfHeight + this.yOffset;
 			} else if (this.y + halfHeight > this.chart.height){
-				this.y = this.chart.height - halfHeight;
+				this.y = this.chart.height - halfHeight + this.yOffset;
 			}
 
 			//Decide whether to align left or right based on position on canvas
@@ -2411,6 +2456,9 @@
 		//Boolean - Whether to show a dot for each point
 		pointDot : true,
 
+		//Boolean - Whether to show each dot as a square
+		pointSquare : false,
+
 		//Number - Radius of each point dot in pixels
 		pointDotRadius : 4,
 
@@ -2429,9 +2477,17 @@
 		//Boolean - Whether to fill the dataset with a colour
 		datasetFill : true,
 
+		//Boolean - Whether to draw the lines as dashed
+		dashedLines : false,
+
+		//Boolean - Whether to show candles for each point
+		candles : false,
+
+		//Number - Pixel width of candle stroke
+		candleStrokeWidth : 3,
+
 		//String - A legend template
 		legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<datasets.length; i++){%><li><span style=\"background-color:<%=datasets[i].strokeColor%>\"></span><%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>"
-
 	};
 
 
@@ -2443,7 +2499,8 @@
 			this.PointClass = Chart.Point.extend({
 				strokeWidth : this.options.pointDotStrokeWidth,
 				radius : this.options.pointDotRadius,
-				display: this.options.pointDot,
+				display : this.options.pointDot,
+				square : this.options.pointSquare,
 				hitDetectionRadius : this.options.pointHitDetectionRadius,
 				ctx : this.chart.ctx,
 				inRange : function(mouseX){
@@ -2475,8 +2532,10 @@
 					label : dataset.label || null,
 					fillColor : dataset.fillColor,
 					strokeColor : dataset.strokeColor,
+					candleStrokeColor : dataset.candleStrokeColor,
 					pointColor : dataset.pointColor,
 					pointStrokeColor : dataset.pointStrokeColor,
+					dashStyle : dataset.dashStyle || [10, 5],
 					points : []
 				};
 
@@ -2681,6 +2740,7 @@
 				ctx.lineWidth = this.options.datasetStrokeWidth;
 				ctx.strokeStyle = dataset.strokeColor;
 				ctx.beginPath();
+
 				helpers.each(dataset.points,function(point,index){
 					if (index>0){
 						if(this.options.bezierCurve){
@@ -2693,25 +2753,53 @@
 								point.y
 							);
 						}
-						else{
+						else if (this.options.dashedLines){
+							helpers.drawDashedLine(ctx, dataset.points[index-1].x, dataset.points[index-1].y, point.x, point.y, dataset.dashStyle);
+						} else{
 							ctx.lineTo(point.x,point.y);
 						}
-
 					}
-					else{
+					else if (!this.dashedLines){
 						ctx.moveTo(point.x,point.y);
 					}
 				},this);
+
 				ctx.stroke();
 
-
 				if (this.options.datasetFill){
+					if (!this.options.bezierCurve && this.options.dashedLines) {
+						//Outline path created by lines
+						ctx.closePath();
+						ctx.beginPath();
+						helpers.each(dataset.points,function(point,index){
+							if (index>0){
+								ctx.lineTo(point.x,point.y);
+							}
+							else{
+								ctx.moveTo(point.x,point.y);
+							}
+						});
+					}
+
 					//Round off the line by going to the base of the chart, back to the start, then fill.
 					ctx.lineTo(dataset.points[dataset.points.length-1].x, this.scale.endPoint);
 					ctx.lineTo(this.scale.calculateX(0), this.scale.endPoint);
 					ctx.fillStyle = dataset.fillColor;
 					ctx.closePath();
 					ctx.fill();
+				}
+
+
+				//Draw the candles from the base to the point
+				if (this.options.candles) {
+					ctx.lineWidth = this.options.candleStrokeWidth;
+					ctx.strokeStyle = dataset.candleStrokeColor;
+					helpers.each(dataset.points,function(point,index){
+						ctx.beginPath();
+						ctx.moveTo(point.x, this.scale.endPoint);
+						ctx.lineTo(point.x, point.y);
+						ctx.stroke();
+					},this)
 				}
 
 				//Now draw the points over the line
@@ -2724,7 +2812,6 @@
 			},this);
 		}
 	});
-
 
 }).call(this);
 (function(){
@@ -3020,6 +3107,9 @@
 			//Boolean - Whether to show a dot for each point
 			pointDot : true,
 
+			//Boolean - Whether to show a square for each point
+			pointSquare : false,
+
 			//Number - Radius of each point dot in pixels
 			pointDotRadius : 3,
 
@@ -3038,6 +3128,9 @@
 			//Boolean - Whether to fill the dataset with a colour
 			datasetFill : true,
 
+			//Boolean - Whether to draw the lines as dashed
+			dashedLines : false,
+
 			//String - A legend template
 			legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<datasets.length; i++){%><li><span style=\"background-color:<%=datasets[i].strokeColor%>\"></span><%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>"
 
@@ -3048,6 +3141,7 @@
 				strokeWidth : this.options.pointDotStrokeWidth,
 				radius : this.options.pointDotRadius,
 				display: this.options.pointDot,
+				square : this.options.pointSquare,
 				hitDetectionRadius : this.options.pointHitDetectionRadius,
 				ctx : this.chart.ctx
 			});
@@ -3082,6 +3176,7 @@
 					strokeColor : dataset.strokeColor,
 					pointColor : dataset.pointColor,
 					pointStrokeColor : dataset.pointStrokeColor,
+					dashStyle : dataset.dashStyle || [10, 5],
 					points : []
 				};
 
@@ -3291,12 +3386,41 @@
 					if (index === 0){
 						ctx.moveTo(point.x,point.y);
 					}
-					else{
+					else if (this.options.dashedLines){
+						helpers.drawDashedLine(ctx, dataset.points[index-1].x, dataset.points[index-1].y, point.x, point.y, dataset.dashStyle);
+					} else{
 						ctx.lineTo(point.x,point.y);
 					}
 				},this);
-				ctx.closePath();
-				ctx.stroke();
+
+				if (this.options.dashedLines) {
+					helpers.drawDashedLine(
+						ctx,
+						 dataset.points[0].x,
+						 dataset.points[0].y,
+						 dataset.points[dataset.points.length-1].x,
+						 dataset.points[dataset.points.length-1].y,
+						 dataset.dashStyle
+					);
+
+					ctx.closePath();
+					ctx.stroke();
+
+					ctx.beginPath();
+					helpers.each(dataset.points,function(point,index){
+						if (index === 0){
+							ctx.moveTo(point.x, point.y);
+						} else{
+							ctx.lineTo(point.x,point.y);
+						}
+					},this);
+					ctx.closePath();
+
+				} else {
+					ctx.closePath();
+					ctx.stroke();
+				}
+
 
 				ctx.fillStyle = dataset.fillColor;
 				ctx.fill();
@@ -3309,13 +3433,7 @@
 				});
 
 			},this);
-
 		}
-
 	});
-
-
-
-
 
 }).call(this);
