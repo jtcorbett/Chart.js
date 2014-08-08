@@ -2,7 +2,8 @@
 <html>
 	<head>
 		<title>Line Chart</title>
-		<script src="../Chart.js"></script>
+		<script src="../src/Chart.Core.js"></script>
+		<script src="../src/Chart.Line.js"></script>
 	</head>
 	<body>
 		<div style="width:30%">
@@ -25,6 +26,7 @@
 					pointStrokeColor : "#fff",
 					pointHighlightFill : "#fff",
 					pointHighlightStroke : "rgba(220,220,220,1)",
+					dashStyle : [10, 5],
 					data : [randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor()]
 				},
 				{
@@ -35,6 +37,7 @@
 					pointStrokeColor : "#fff",
 					pointHighlightFill : "#fff",
 					pointHighlightStroke : "rgba(151,187,205,1)",
+					dashStyle : [1, 0],
 					data : [randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor()]
 				}
 			]
@@ -44,7 +47,10 @@
 	window.onload = function(){
 		var ctx = document.getElementById("canvas").getContext("2d");
 		window.myLine = new Chart(ctx).Line(lineChartData, {
-			responsive: true
+			responsive: true,
+			bezierCurve: false,
+			pointSquare: true,
+			dashedLines: true
 		});
 	}
 
