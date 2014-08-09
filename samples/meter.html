@@ -37,21 +37,24 @@
 					color: "#949FB1",
 					highlight: "#A8B3C5",
 					label: "Grey"
-				},
+				}/*,
 				{
 					value: 120,
 					color: "#4D5360",
 					highlight: "#616774",
 					label: "Dark Grey"
-				}
+				}*/
 			];
 
 			window.onload = function(){
 				var ctx = document.getElementById("chart-area").getContext("2d");
 				window.myMeter = new Chart(ctx).Meter(meterData, {
           total: 1000,
-          animationSteps: 80,
+          radius: 50,
+          backgroundColor: '#000',
+          // animationSteps: 500,
           responsive: true,
+          tooltipXOffset: 100
         });
 			};
 

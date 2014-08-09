@@ -6,8 +6,10 @@
 		//Cache a local reference to Chart.helpers
 		helpers = Chart.helpers;
 
-	var defaultConfig ={
+	var defaultConfig = {
 		backgroundColor: "black",
+
+		radius: Infinity,
 
 		maintainAspectRatio: false
 	};
@@ -76,8 +78,8 @@
 					fillColor : this.options.backgroundColor,
 					highlightColor : this.options.backgroundColor,
 					width : this.MeterSegment.prototype.base,
-					lradius : this.MeterSegment.prototype.base / 2,
-					rradius : this.MeterSegment.prototype.base / 2
+					lradius : Math.min(this.MeterSegment.prototype.base / 2, this.options.radius),
+					rradius : Math.min(this.MeterSegment.prototype.base / 2, this.options.radius)
 				});
 			}
 
@@ -131,7 +133,13 @@
 				label : segment.label,
 				width : 0,
 				lradius : 0,
-				rradius : 0
+				rradius : 0,
+				tooltipPosition : function() {
+					return {
+						x: this.x + this.width/2,
+						y: this.base/2
+					};
+				}
 			}));
 
 			if (!silent){
@@ -161,23 +169,16 @@
 			helpers.each(this.segments, function(segment, index){
 
 				if (index === 0){
-					segment.lradius = segment.base/2;
+					segment.lradius = Math.min(segment.base/2, this.options.radius);
 				}
 
 				if (index === this.segments.length-1){
-					segment.rradius = segment.base/2;
+					segment.rradius = Math.min(segment.base/2, this.options.radius);
 				}
-
-				segment.width = segment.lradius + segment.rradius;
 
 				// hacky fix for highlighting
-				if (segment._saved.fillColor !== segment.fillColor) {
-					var highlight = segment._saved.fillColor;
-					segment.save();
-					segment._saved.fillColor = highlight;
-				} else {
-					segment.save();
-				}
+				segment.width = segment.lradius + segment.rradius;
+				segment._saved.width = segment.lradius + segment.rradius;
 
 				segment.transition({
 					width: segment.value / this.total * width
