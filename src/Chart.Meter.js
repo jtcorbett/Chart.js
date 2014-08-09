@@ -7,9 +7,15 @@
 		helpers = Chart.helpers;
 
 	var defaultConfig = {
-		backgroundColor: "black",
+		total: 0,
 
-		radius: Infinity,
+		backgroundColor: undefined,
+
+		radius: 0,
+
+		strokeColor: "#000",
+
+		strokeWidth: 0,
 
 		maintainAspectRatio: false
 	};
@@ -30,22 +36,27 @@
 				y: 0,
 				width: 0,
 				base: this.chart.height,
-				strokeWidth: 0,
 				inRange : function(chartX,chartY){
 					return (chartX >= this.x && chartX <= this.x + this.width) && (chartY >= this.y && chartY <= this.base);
 				},
 				draw: function(){
+					this.ctx.strokeStyle = this.strokeColor;
+					this.ctx.lineWidth = this.strokeWidth;
 					this.ctx.fillStyle = this.fillColor;
 					helpers.drawHalfRoundedRectangle(
 						this.ctx,
-						this.x,
-						this.y,
-						this.width,
-						this.base,
+						this.strokeWidth ? this.x + this.strokeWidth/2 : this.x,
+						this.strokeWidth ? this.y + this.strokeWidth/2 : this.y,
+						this.strokeWidth ? this.width - this.strokeWidth : this.width,
+						this.strokeWidth ? this.base - this.strokeWidth : this.base,
 						this.lradius,
 						this.rradius
 					);
-					this.ctx.fill()
+					this.ctx.fill();
+
+					if (this.strokeWidth > 0) {
+						this.ctx.stroke();
+					}
 				}
 			});
 
@@ -76,6 +87,8 @@
 				this.backgroundSegment = new this.MeterSegment({
 					value: this.total,
 					fillColor : this.options.backgroundColor,
+					strokeColor : 'transparent',
+					strokeWidth : this.options.strokeWidth,
 					highlightColor : this.options.backgroundColor,
 					width : this.MeterSegment.prototype.base,
 					lradius : Math.min(this.MeterSegment.prototype.base / 2, this.options.radius),
@@ -129,6 +142,8 @@
 			this.segments.splice(index, 0, new this.MeterSegment({
 				value : segment.value,
 				fillColor : segment.color,
+				strokeColor : segment.strokeColor,
+				strokeWidth : this.options.strokeWidth,
 				highlightColor : segment.highlight || segment.color,
 				label : segment.label,
 				width : 0,
@@ -181,7 +196,7 @@
 				segment._saved.width = segment.lradius + segment.rradius;
 
 				segment.transition({
-					width: segment.value / this.total * width
+					width: Math.max(segment.value / this.total * width, segment.lradius + segment.rradius)
 				},easingDecimal).draw();
 
 				if (index < this.segments.length-1){

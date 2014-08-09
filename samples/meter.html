@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<title>Meter</title>
-    <script src="../src/Chart.Core.js"></script>
+		<script src="../src/Chart.Core.js"></script>
 		<script src="../src/Chart.Meter.js"></script>
 	</head>
 	<body>
@@ -17,45 +17,49 @@
 				{
 					value: 100,
 					color:"#F7464A",
+					strokeColor: "#000",
 					highlight: "#FF5A5E",
 					label: "Red"
 				},
 				{
 					value: 50,
 					color: "#46BFBD",
+					strokeColor: "#f00",
 					highlight: "#5AD3D1",
 					label: "Green"
 				},
 				{
 					value: 100,
 					color: "#FDB45C",
+					strokeColor: "#0f0",
 					highlight: "#FFC870",
 					label: "Yellow"
 				},
 				{
 					value: 40,
 					color: "#949FB1",
+					strokeColor: "#00f",
 					highlight: "#A8B3C5",
 					label: "Grey"
-				}/*,
+				},
 				{
 					value: 120,
 					color: "#4D5360",
+					strokeColor: "#f0f",
 					highlight: "#616774",
 					label: "Dark Grey"
-				}*/
+				}
 			];
 
 			window.onload = function(){
 				var ctx = document.getElementById("chart-area").getContext("2d");
 				window.myMeter = new Chart(ctx).Meter(meterData, {
-          total: 1000,
-          radius: 50,
-          backgroundColor: '#000',
-          // animationSteps: 500,
-          responsive: true,
-          tooltipXOffset: 100
-        });
+					// total: 1000,
+					radius: 25,
+					backgroundColor: '#999',
+					strokeWidth: 5,
+					responsive: true,
+				});
 			};
 
 	</script>
